@@ -114,22 +114,31 @@
     return item.main.join(' ') + ' + ' + item.bonus;
   }
 
+  var RECENT_4TH_ROUNDS = 156; // 4등은 마지막 회차 기준 최근 N회차만 비교
+  var PRIZE_4TH = 50000;
+
   // draws 행: [회차, "YYYY.MM.DD", n1..n6, 보너스, 1등 1인당, 2등 1인당, 3등 1인당]
-  // main(본번호 6개)만 비교. 3등 이상 중 가장 높은 등수, 같으면 가장 최근 회차.
+  // main(본번호 6개)만 비교. 1–3등은 전체 회차, 4등은 최근 RECENT_4TH_ROUNDS 회차.
+  // 가장 높은 등수, 같으면 가장 최근 회차.
   function findBestDraw(main, draws) {
     if (!Array.isArray(main) || !Array.isArray(draws)) return null;
     var mine = {};
     main.forEach(function (n) { mine[n] = true; });
+    var lastRound = 0;
+    for (var j = 0; j < draws.length; j++) {
+      if (Array.isArray(draws[j]) && draws[j][0] > lastRound) lastRound = draws[j][0];
+    }
+    var min4th = lastRound - RECENT_4TH_ROUNDS + 1;
     var best = null;
     for (var i = 0; i < draws.length; i++) {
       var d = draws[i];
       if (!Array.isArray(d) || d.length < 12) continue;
       var hit = 0;
       for (var k = 2; k <= 7; k++) if (mine[d[k]]) hit++;
-      var rank = hit === 6 ? 1 : hit === 5 ? (mine[d[8]] ? 2 : 3) : 0;
+      var rank = hit === 6 ? 1 : hit === 5 ? (mine[d[8]] ? 2 : 3) : (hit === 4 && d[0] >= min4th) ? 4 : 0;
       if (!rank) continue;
       if (!best || rank < best.rank || (rank === best.rank && d[0] > best.round)) {
-        best = { round: d[0], date: d[1], rank: rank, prize: d[8 + rank] };
+        best = { round: d[0], date: d[1], rank: rank, prize: rank === 4 ? PRIZE_4TH : d[8 + rank] };
       }
     }
     return best;
