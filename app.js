@@ -29,33 +29,52 @@
     return total;
   }
 
-  // FNV-1a 32bit
+  // cyrb128: 문자열 → 32bit 정수 4개 (128bit 시드)
   function hashSeed(str) {
-    var h = 0x811c9dc5;
-    for (var i = 0; i < str.length; i++) {
-      h ^= str.charCodeAt(i);
-      h = Math.imul(h, 0x01000193);
+    var h1 = 1779033703, h2 = 3144134277, h3 = 1013904242, h4 = 2773480762;
+    for (var i = 0, k; i < str.length; i++) {
+      k = str.charCodeAt(i);
+      h1 = h2 ^ Math.imul(h1 ^ k, 597399067);
+      h2 = h3 ^ Math.imul(h2 ^ k, 2869860233);
+      h3 = h4 ^ Math.imul(h3 ^ k, 951274213);
+      h4 = h1 ^ Math.imul(h4 ^ k, 2716044179);
     }
-    return h >>> 0;
+    h1 = Math.imul(h3 ^ (h1 >>> 18), 597399067);
+    h2 = Math.imul(h4 ^ (h2 >>> 22), 2869860233);
+    h3 = Math.imul(h1 ^ (h3 >>> 17), 951274213);
+    h4 = Math.imul(h2 ^ (h4 >>> 19), 2716044179);
+    h1 ^= (h2 ^ h3 ^ h4); h2 ^= h1; h3 ^= h1; h4 ^= h1;
+    return [h1 >>> 0, h2 >>> 0, h3 >>> 0, h4 >>> 0];
   }
 
-  function mulberry32(seed) {
-    var a = seed >>> 0;
+  // sfc32: uint32 (0 ≤ x < 2^32) 를 돌려주는 PRNG
+  function sfc32(a, b, c, d) {
     return function () {
-      a = (a + 0x6D2B79F5) >>> 0;
-      var t = a;
-      t = Math.imul(t ^ (t >>> 15), t | 1);
-      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      a >>>= 0; b >>>= 0; c >>>= 0; d >>>= 0;
+      var t = (a + b) | 0;
+      a = b ^ (b >>> 9);
+      b = (c + (c << 3)) | 0;
+      c = (c << 21) | (c >>> 11);
+      d = (d + 1) | 0;
+      t = (t + d) | 0;
+      c = (c + t) | 0;
+      return t >>> 0;
     };
   }
 
-  // rand: [0, 1) 난수를 돌려주는 함수
-  function drawNumbers(rand) {
+  // 0 ≤ x < n, 거절 샘플링으로 완전 균등
+  function randInt(next, n) {
+    var limit = Math.floor(4294967296 / n) * n, x;
+    do { x = next(); } while (x >= limit);
+    return x % n;
+  }
+
+  // next: uint32 를 돌려주는 함수. 7칸만 Fisher–Yates
+  function drawNumbers(next) {
     var pool = [];
     for (var n = 1; n <= 45; n++) pool.push(n);
-    for (var i = pool.length - 1; i > 0; i--) {
-      var j = Math.floor(rand() * (i + 1));
+    for (var i = 0; i < 7; i++) {
+      var j = i + randInt(next, 45 - i);
       var tmp = pool[i]; pool[i] = pool[j]; pool[j] = tmp;
     }
     return {
@@ -64,10 +83,10 @@
     };
   }
 
-  function cryptoRandom() {
+  function cryptoUint32() {
     var buf = new Uint32Array(1);
     crypto.getRandomValues(buf);
-    return buf[0] / 4294967296;
+    return buf[0];
   }
 
   function dateParts(d) {
@@ -77,12 +96,17 @@
     return { int: Number(y + m + day), label: y + '.' + m + '.' + day };
   }
 
+  var SEED_PREFIX = 'clover-v2';
+
   function sentenceNumbers(text, now) {
     var sentence = normalizeSentence(text);
     var strokes = countStrokes(sentence);
     var date = dateParts(now);
-    var seed = hashSeed(sentence + '|' + strokes + '|' + date.int);
-    var result = drawNumbers(mulberry32(seed));
+    var s = hashSeed(SEED_PREFIX + '|' + sentence + '|' + strokes + '|' + date.int);
+    var next = sfc32(s[0], s[1], s[2], s[3]);
+    // 획수만큼 굴리기
+    for (var r = 12 + (strokes % 32); r > 0; r--) next();
+    var result = drawNumbers(next);
     return { main: result.main, bonus: result.bonus, sentence: sentence, strokes: strokes, date: date.label };
   }
 
@@ -124,7 +148,8 @@
     normalizeSentence: normalizeSentence,
     countStrokes: countStrokes,
     hashSeed: hashSeed,
-    mulberry32: mulberry32,
+    sfc32: sfc32,
+    randInt: randInt,
     drawNumbers: drawNumbers,
     sentenceNumbers: sentenceNumbers,
     findBestDraw: findBestDraw
@@ -299,7 +324,7 @@
   }
 
   function generateBasic() {
-    var r = drawNumbers(cryptoRandom);
+    var r = drawNumbers(cryptoUint32);
     addItem('basic', { main: r.main, bonus: r.bonus, createdAt: Date.now() });
   }
 
