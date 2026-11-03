@@ -1,0 +1,373 @@
+:root {
+  --bg: #ffffff;
+  --text: #191919;
+  --muted: #8b8b8b;
+  --faint: #c4c4c4;
+  --line: #ececec;
+  --surface: #f5f5f5;
+  --accent: #191919;
+  --on-accent: #ffffff;
+  --focus: #3b82f6;
+
+  --ball-1: #FBC400;
+  --ball-2: #69C8F2;
+  --ball-3: #FF7272;
+  --ball-4: #AAAAAA;
+  --ball-5: #B0D840;
+
+  --ball: clamp(24px, 8.2vw, 38px);
+  --gap: clamp(3px, 1vw, 5px);
+  --ad-height: 100px;
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141414;
+    --text: #ededed;
+    --muted: #8a8a8a;
+    --faint: #4a4a4a;
+    --line: #262626;
+    --surface: #1f1f1f;
+    --accent: #ededed;
+    --on-accent: #141414;
+    --focus: #60a5fa;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* ---------- 레이아웃 ---------- */
+
+.app {
+  flex: 1;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 16px 32px;
+}
+
+.header h1 {
+  margin: 0;
+  padding: 28px 0 20px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* ---------- 탭 ---------- */
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--surface);
+  border-radius: 12px;
+}
+
+.tab {
+  flex: 1;
+  padding: 8px 0;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.tab[aria-selected="true"] {
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* ---------- 입력부 ---------- */
+
+.input-area {
+  margin: 20px 0 12px;
+}
+
+.panel#panel-basic .input-area {
+  display: flex;
+  justify-content: center;
+}
+
+.add-btn {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  transition: transform 0.12s ease;
+}
+
+.add-btn:active {
+  transform: scale(0.94);
+}
+
+.sentence-input {
+  display: block;
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  font-size: 16px; /* iOS 확대 방지 */
+}
+
+.sentence-input::placeholder {
+  color: var(--muted);
+}
+
+.sentence-input:focus {
+  outline: none;
+  border-color: var(--focus);
+}
+
+.status {
+  min-height: 20px;
+  margin: 6px 2px 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ---------- 결과 ---------- */
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+.row-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.row-no {
+  flex: none;
+  min-width: 24px;
+  font-size: 12px;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.line {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+}
+
+.ball {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--ball);
+  height: var(--ball);
+  border-radius: 50%;
+  color: #fff;
+  font-size: calc(var(--ball) * 0.42);
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.18);
+}
+
+.ball.r1 { background: var(--ball-1); }
+.ball.r2 { background: var(--ball-2); }
+.ball.r3 { background: var(--ball-3); }
+.ball.r4 { background: var(--ball-4); }
+.ball.r5 { background: var(--ball-5); }
+
+.ball.bonus {
+  width: calc(var(--ball) * 0.85);
+  height: calc(var(--ball) * 0.85);
+  font-size: calc(var(--ball) * 0.85 * 0.42);
+}
+
+.plus {
+  flex: none;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.meta {
+  margin: 6px 0 0 32px;
+  font-size: 12px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.copy-btn {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+}
+
+.copy-btn:hover {
+  color: var(--text);
+}
+
+.copied {
+  position: absolute;
+  right: 0;
+  bottom: 100%;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 11px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.copy-btn.is-copied .copied {
+  opacity: 1;
+}
+
+.clear-btn {
+  display: block;
+  margin: 16px auto 0;
+  padding: 6px 10px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.clear-btn:hover {
+  color: var(--text);
+}
+
+/* ---------- 광고 슬롯 ---------- */
+
+.ad-slot {
+  flex: none;
+  width: 100%;
+  max-width: 480px;
+  height: var(--ad-height);
+  margin: 0 auto;
+  border-top: 1px dashed var(--line);
+  overflow: hidden;
+}
+
+/* ---------- 애니메이션 ---------- */
+
+.ball.drop {
+  animation: drop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes drop {
+  from {
+    opacity: 0;
+    transform: translateY(-28px);
+  }
+  60% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.shake {
+  animation: shake 0.3s ease;
+}
+
+@keyframes shake {
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ball.drop {
+    animation: fade 0.2s ease both;
+    animation-delay: 0s !important;
+  }
+
+  .shake {
+    animation: flash 0.6s ease;
+  }
+
+  .add-btn,
+  .copied {
+    transition: none;
+  }
+}
+
+@keyframes flash {
+  30% { border-color: var(--ball-3); }
+}
+
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

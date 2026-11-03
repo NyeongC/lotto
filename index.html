@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>오늘의 로또</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <h1>🍀 오늘의 로또</h1>
+    </header>
+
+    <div class="tabs" role="tablist" aria-label="생성 방식">
+      <button type="button" class="tab" role="tab" id="tab-basic" aria-controls="panel-basic" aria-selected="true">기본</button>
+      <button type="button" class="tab" role="tab" id="tab-sentence" aria-controls="panel-sentence" aria-selected="false" tabindex="-1">문장</button>
+    </div>
+
+    <section class="panel" role="tabpanel" id="panel-basic" aria-labelledby="tab-basic">
+      <div class="input-area">
+        <button type="button" class="add-btn" id="add-btn" aria-label="번호 생성">
+          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <ul class="list" id="list-basic"></ul>
+      <button type="button" class="clear-btn" data-tab="basic" hidden>전체 지우기</button>
+    </section>
+
+    <section class="panel" role="tabpanel" id="panel-sentence" aria-labelledby="tab-sentence" hidden>
+      <form class="input-area" id="sentence-form" autocomplete="off">
+        <input type="text" class="sentence-input" id="sentence-input" placeholder="문장을 입력하고 Enter" aria-label="문장 입력" maxlength="200" enterkeyhint="done">
+        <p class="status" id="sentence-status" aria-live="polite"></p>
+      </form>
+      <ul class="list" id="list-sentence"></ul>
+      <button type="button" class="clear-btn" data-tab="sentence" hidden>전체 지우기</button>
+    </section>
+  </main>
+
+  <aside class="ad-slot" aria-label="광고">
+    <!-- AD: 여기에 AdSense / AdFit 코드 삽입 -->
+  </aside>
+
+  <script src="./app.js"></script>
+</body>
+</html>
