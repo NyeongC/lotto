@@ -120,6 +120,7 @@
   // draws 행: [회차, "YYYY.MM.DD", n1..n6, 보너스, 1등 1인당, 2등 1인당, 3등 1인당]
   // main(본번호 6개)만 비교. 1–3등은 전체 회차, 4등은 최근 RECENT_4TH_ROUNDS 회차.
   // 가장 높은 등수, 같으면 가장 최근 회차.
+  // 반환: { round, date, rank, prize, matched } | null
   function findBestDraw(main, draws) {
     if (!Array.isArray(main) || !Array.isArray(draws)) return null;
     var mine = {};
@@ -138,9 +139,15 @@
       var rank = hit === 6 ? 1 : hit === 5 ? (mine[d[8]] ? 2 : 3) : (hit === 4 && d[0] >= min4th) ? 4 : 0;
       if (!rank) continue;
       if (!best || rank < best.rank || (rank === best.rank && d[0] > best.round)) {
-        best = { round: d[0], date: d[1], rank: rank, prize: rank === 4 ? PRIZE_4TH : d[8 + rank] };
+        best = { round: d[0], date: d[1], rank: rank, prize: rank === 4 ? PRIZE_4TH : d[8 + rank], draw: d };
       }
     }
+    if (!best) return null;
+    // 맞은 내 본번호 (2등은 보너스와 같은 번호 포함), 오름차순
+    var hitNums = best.draw.slice(2, best.rank === 2 ? 9 : 8);
+    best.matched = main.filter(function (n) { return hitNums.indexOf(n) >= 0; })
+      .sort(function (a, b) { return a - b; });
+    delete best.draw;
     return best;
   }
 
@@ -238,13 +245,16 @@
     return 'r5';
   }
 
+  var RING_DELAY = 6 * 80 + 450; // 마지막 공이 다 떨어진 뒤
+
   function makeBall(n, extraClass, index, animate) {
     var b = document.createElement('span');
     b.className = 'ball ' + ballRange(n) + (extraClass ? ' ' + extraClass : '');
     b.textContent = n;
     if (animate) {
       b.classList.add('drop');
-      b.style.animationDelay = (index * 80) + 'ms';
+      // 두 번째 값은 .hit 테두리 페이드(ring) 용
+      b.style.animationDelay = (index * 80) + 'ms, ' + RING_DELAY + 'ms';
     }
     return b;
   }
@@ -263,8 +273,13 @@
     var line = document.createElement('div');
     line.className = 'line';
     line.setAttribute('role', 'group');
-    line.setAttribute('aria-label', item.main.join(', ') + ', 보너스 ' + item.bonus);
-    item.main.forEach(function (n, i) { line.appendChild(makeBall(n, '', i, animate)); });
+    var win = findBestDraw(item.main, window.LOTTO_DRAWS);
+    var matched = win ? win.matched : [];
+    line.setAttribute('aria-label', item.main.join(', ') + ', 보너스 ' + item.bonus
+      + (matched.length ? ', 일치 ' + matched.join(', ') : ''));
+    item.main.forEach(function (n, i) {
+      line.appendChild(makeBall(n, matched.indexOf(n) >= 0 ? 'hit' : '', i, animate));
+    });
     var plus = document.createElement('span');
     plus.className = 'plus';
     plus.setAttribute('aria-hidden', 'true');
@@ -291,7 +306,6 @@
       li.appendChild(meta);
     }
 
-    var win = findBestDraw(item.main, window.LOTTO_DRAWS);
     if (win) {
       var winLine = document.createElement('p');
       winLine.className = 'meta win' + (win.rank === 1 ? ' top' : '');

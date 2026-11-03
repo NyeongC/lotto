@@ -235,6 +235,11 @@ button {
 .ball.r4 { background: var(--ball-4); }
 .ball.r5 { background: var(--ball-5); }
 
+.ball.hit {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
 .ball.bonus {
   width: calc(var(--ball) * 0.85);
   height: calc(var(--ball) * 0.85);
@@ -332,6 +337,14 @@ button {
   animation: drop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
+.ball.hit.drop {
+  animation: drop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both, ring 0.25s ease both;
+}
+
+@keyframes ring {
+  from { outline-color: transparent; }
+}
+
 @keyframes drop {
   from {
     opacity: 0;
@@ -357,7 +370,8 @@ button {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ball.drop {
+  .ball.drop,
+  .ball.hit.drop {
     animation: fade 0.2s ease both;
     animation-delay: 0s !important;
   }
