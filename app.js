@@ -90,6 +90,35 @@
     return item.main.join(' ') + ' + ' + item.bonus;
   }
 
+  // draws 행: [회차, "YYYY.MM.DD", n1..n6, 보너스, 1등 1인당, 2등 1인당, 3등 1인당]
+  // main(본번호 6개)만 비교. 3등 이상 중 가장 높은 등수, 같으면 가장 최근 회차.
+  function findBestDraw(main, draws) {
+    if (!Array.isArray(main) || !Array.isArray(draws)) return null;
+    var mine = {};
+    main.forEach(function (n) { mine[n] = true; });
+    var best = null;
+    for (var i = 0; i < draws.length; i++) {
+      var d = draws[i];
+      if (!Array.isArray(d) || d.length < 12) continue;
+      var hit = 0;
+      for (var k = 2; k <= 7; k++) if (mine[d[k]]) hit++;
+      var rank = hit === 6 ? 1 : hit === 5 ? (mine[d[8]] ? 2 : 3) : 0;
+      if (!rank) continue;
+      if (!best || rank < best.rank || (rank === best.rank && d[0] > best.round)) {
+        best = { round: d[0], date: d[1], rank: rank, prize: d[8 + rank] };
+      }
+    }
+    return best;
+  }
+
+  function formatWin(win) {
+    var text = '🎯 ' + win.round + '회(' + win.date + ')였다면 ' + win.rank + '등';
+    if (typeof win.prize === 'number' && win.prize > 0) {
+      text += ' · ' + win.prize.toLocaleString('ko-KR') + '원';
+    }
+    return text;
+  }
+
   // 콘솔/테스트용으로 노출
   window.Lotto = {
     normalizeSentence: normalizeSentence,
@@ -97,7 +126,8 @@
     hashSeed: hashSeed,
     mulberry32: mulberry32,
     drawNumbers: drawNumbers,
-    sentenceNumbers: sentenceNumbers
+    sentenceNumbers: sentenceNumbers,
+    findBestDraw: findBestDraw
   };
 
   /* =========================================================
@@ -225,6 +255,14 @@
       meta.className = 'meta';
       meta.textContent = '"' + item.sentence + '" · 획수 ' + item.strokes + ' · ' + item.date;
       li.appendChild(meta);
+    }
+
+    var win = findBestDraw(item.main, window.LOTTO_DRAWS);
+    if (win) {
+      var winLine = document.createElement('p');
+      winLine.className = 'meta win' + (win.rank === 1 ? ' top' : '');
+      winLine.textContent = formatWin(win);
+      li.appendChild(winLine);
     }
     return li;
   }
